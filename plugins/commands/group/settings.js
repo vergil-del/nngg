@@ -1,5 +1,5 @@
 const config = {
-    name: "settings",
+    name: "اعاعدادات", 
     aliases: ["setting"],
     description: "Settings for better group management, i changed the permission because of spam.",
     usage: "",
