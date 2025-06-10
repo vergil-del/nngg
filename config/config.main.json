@@ -17,12 +17,12 @@
     "LANGUAGE": "ar_SY",
     "LOG_LEVEL": 1,
     "MODERATORS": [
-        "MOD_UID"
+        "61553754531086"
     ],
     "ABSOLUTES": [
         "61553754531086"
     ],
-    "NAME": "NAME_OF_BOT",
+    "NAME": "نـازي بـوت",
     "PREFIX": ".",
     "timezone": "Asia/Manila",
     "REFRESH": "43200000"
