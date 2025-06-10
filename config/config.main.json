@@ -20,10 +20,10 @@
         "MOD_UID"
     ],
     "ABSOLUTES": [
-        "AB_UID"
+        "61553754531086"
     ],
     "NAME": "NAME_OF_BOT",
-    "PREFIX": "PREFIX_HERE",
+    "PREFIX": ".",
     "timezone": "Asia/Manila",
     "REFRESH": "43200000"
 }
