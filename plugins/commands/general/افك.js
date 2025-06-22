@@ -1,8 +1,12 @@
 const config = {
     credits: "XaviaTeam"
+
+
+
 }
 
 const langData = {
+    
     "en_US": {
         "afkOn": "You are now AFK.",
         "afkOff": "You are no longer AFK.",
