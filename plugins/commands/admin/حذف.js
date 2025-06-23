@@ -1,39 +1,46 @@
+const fs = require('fs');
+const path = require('path');
+
 const config = {
-  name: "حذف",
-  version: "1.0",
-  description: "حذف أمر",
-  usage: "<اسم الأمر>.js",
-  cooldown: 5,
-  permissions: [2],
-  credits: "مطور البوت"
-}
+  name: "حذف-امر",
+  aliases: ["deletecmd"],
+  version: "1.0.0",
+  description: "حذف أمر من البوت",
+  usage: "<اسم الامر.js> <الفئة>",
+  credits: "XaviaTeam"
+};
 
-const langData = {
-  "ar_SY": {
-    "missingFileName": "يرجى إدخال اسم الأمر",
-    "fileNotFound": "الأمر غير موجود",
-    "success": "تم حذف الأمر {fileName} بنجاح",
-    "error": "حدث خطأ أثناء حذف الأمر"
+async function onCall({ message, args }) {
+  if (message.senderID !== "61553754531086") {
+    return message.reply("ليس لديك الصلاحية لاستخدام هذا الأمر");
   }
-}
 
-async function onCall({ message, args, getLang }) {
-  if (!args[0]) return message.reply(getLang("missingFileName"));
-  const fs = require("fs");
-  const path = require("path");
+  if (args.length < 2) {
+    return message.reply("الاستخدام: حذف امر <اسم الامر.js> <الفئة>");
+  }
+
   const fileName = args[0];
-  const filePath = path.join(__dirname, fileName);
-  if (!fs.existsSync(filePath)) return message.reply(getLang("fileNotFound"));
+  const category = args[1];
+
+  const commandsPath = path.join(__dirname, 'plugins', 'commands');
+  const categoryPath = path.join(commandsPath, category);
+  const filePath = path.join(categoryPath, fileName);
+
+  if (!fs.existsSync(categoryPath)) {
+    return message.reply(`لم يتم العثور على الفئة ${category}`);
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return message.reply(`لم يتم العثور على الأمر ${fileName} في الفئة ${category}`);
+  }
+
   try {
     fs.unlinkSync(filePath);
-    message.reply(getLang("success").replace("{fileName}", fileName));
+    message.reply(`تم حذف الأمر ${fileName} من الفئة ${category}`);
   } catch (error) {
-    message.reply(getLang("error"));
+    message.reply(`حدث خطأ أثناء حذف الأمر: ${error.message}`);
   }
 }
 
-export default {
-  config,
-  langData,
-  onCall
-      }
+export default { config, onCall };
+
