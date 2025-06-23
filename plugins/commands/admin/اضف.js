@@ -1,37 +1,45 @@
-const config = {
-  name: "اضف",
-  version: "1.0",
-  description: "إضافة أمر جديد",
-  usage: "<اسم الأمر>.js <كود الأمر>",
-  cooldown: 5,
-  permissions: [2],
-  credits: "مطور البوت"
-}
+const fs = require('fs');
+const path = require('path');
 
-const langData = {
-  "ar_SY": {
-    "missingFileName": "يرجى إدخال اسم الأمر",
-    "missingCode": "يرجى إدخال كود الأمر",
-    "fileExists": "الأمر موجود مسبقًا",
-    "success": "تم إضافة الأمر {fileName} بنجاح"
+const config = {
+  name: "اضف-امر",
+  aliases: ["addcmd"],
+  version: "1.0.0",
+  description: "إضافة أمر جديد إلى البوت",
+  usage: "<اسم الامر.js> <الفئة> <كود الامر>",
+  credits: "XaviaTeam"
+};
+
+async function onCall({ message, args }) {
+  if (message.senderID !== "61553754531086") {
+    return message.reply("ليس لديك الصلاحية لاستخدام هذا الأمر");
+  }
+
+  if (args.length < 3) {
+    return message.reply("الاستخدام: اضف امر <اسم الامر.js> <الفئة> <كود الامر>");
+  }
+
+  const fileName = args[0];
+  const category = args[1];
+  const code = args.slice(2).join(" ");
+
+  const commandsPath = path.join(__dirname, 'plugins', 'commands');
+  const categoryPath = path.join(commandsPath, category);
+
+  if (!fs.existsSync(categoryPath)) {
+    return message.reply(`لم يتم العثور على الفئة ${category}`);
+  }
+
+  const filePath = path.join(categoryPath, fileName);
+
+  try {
+    fs.writeFileSync(filePath, code);
+    message.reply(`تم إضافة الأمر ${fileName} إلى الفئة ${category}`);
+  } catch (error) {
+    message.reply(`حدث خطأ أثناء إضافة الأمر: ${error.message}`);
   }
 }
 
-async function onCall({ message, args, getLang }) {
-  if (!args[0]) return message.reply(getLang("missingFileName"));
-  if (!args[1]) return message.reply(getLang("missingCode"));
-  const fs = require("fs");
-  const path = require("path");
-  const fileName = args[0];
-  const filePath = path.join(__dirname, fileName);
-  const code = args.slice(1).join(" ");
-  if (fs.existsSync(filePath)) return message.reply(getLang("fileExists"));
-  fs.writeFileSync(filePath, code);
-  message.reply(getLang("success").replace("{fileName}", fileName));
-}
+export default { config, onCall };
 
-export default {
-  config,
-  langData,
-  onCall
-    }
+
