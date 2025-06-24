@@ -38,8 +38,8 @@ const langData = {
     "fail": "【 ℹ 】➜ Thất bại!",
     "no.money": "【 ℹ 】➜ Bạn không đủ tiền!",
     "menu": "【 ℹ 】Hướng Dẫn Sử Dụng 【 ℹ 】n1. Tạo tài khoản: register <tên>\n2. Rút tiền: withdraw <số tiền>\n3. Nạp tiền: deposit <số tiền>\n4. Đổi tên tài khoản: rename <tên mới>\n5. Thông tin tài khoản: check\n6. Xem người giàu nhất: top <số lượng>"
-  }
-  ar_YS{
+  }, 
+ "ar_SY": {
     "no.account": "【 】➜ ليس لديك حساب بعد!"، 
     "have.account": "【 】➜ لديك حساب بالفعل!"، 
     "error": "【 】➜ خطأ، يُرجى المحاولة مرة أخرى!"،
