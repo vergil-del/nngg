@@ -5,7 +5,7 @@ import Decimal from 'decimal.js';
 const PATH = join(global.assetsPath, 'bankOwner.json'); 
 
 const config = {
-  name: 'bank',
+  name: 'بنك',
   aliases: ["bk", "b", "banking"],
   description: 'Bank Online',
   usage: '<Use command to show menu>',
