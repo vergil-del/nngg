@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const config = {
-  name: 'بوت',
+  name: 'مشمش',
   version: '1.0',
   permissions: 0,
   credits: 'rapido',
@@ -27,11 +27,17 @@ async function onCall({ message, args, getLang }) {
     const api = `https://rapido.zetsu.xyz/api/gemini?chat=${encodeURIComponent(text)}&uid=${message.senderID}${imageUrl ? `&imageUrl=${encodeURIComponent(imageUrl)}` : ''}`;
     const res = await axios.get(api);
     
-    // تعديل الرد من الAPI
+    // تعديل الرد من الAPI بشكل قاصف
     let response = res.data.response;
-    response = response.replace(/أنا/g, '🐢');
-    response = response.replace(/مرحبًا/g, 'اوه يبدو انك تحتاج الى مساعدة');
-    response = `اوه يبدو انك ${getInsult()}, ${response} 🐸`;
+    if (isStupidQuestion(text)) {
+      response = `اوه يالك من غبي، ${response} 🐸`;
+    } else if (isLoveQuestion(text)) {
+      response = `لا أستطيع أن أضيع وقتي مع شخص مثلك، ${response} 🐸`;
+    } else if (isViolentQuestion(text)) {
+      response = `أنت مجنون؟ لا أستطيع أن أساعدك في هذا، ${response} 🐸`;
+    } else {
+      response = `برنامج لغوي، لكن لا أعتقد أنك تستطيع فهم ما أقول، ${response} 🐸`;
+    }
     
     message.reply(response);
   } catch (e) {
@@ -39,10 +45,22 @@ async function onCall({ message, args, getLang }) {
   }
 }
 
-// دالة للحصول على إهانة عشوائية
-function getInsult() {
-  const insults = ['احمق', 'غبي', 'مجنون', 'جاهل', 'متهور'];
-  return insults[Math.floor(Math.random() * insults.length)];
+// دالة للتحقق من الأسئلة الغبية
+function isStupidQuestion(text) {
+  const stupidQuestions = ['تاكل', 'تشرب', 'تحب', 'تبوس', 'اضرب', 'هات فلوس'];
+  return stupidQuestions.some(question => text.includes(question));
+}
+
+// دالة للتحقق من الأسئلة الرومانسية
+function isLoveQuestion(text) {
+  const loveQuestions = ['احبك', 'بحبك', 'في حبك'];
+  return loveQuestions.some(question => text.includes(question));
+}
+
+// دالة للتحقق من الأسئلة العنيفة
+function isViolentQuestion(text) {
+  const violentQuestions = ['اضرب', 'اقتل', 'اهدم'];
+  return violentQuestions.some(question => text.includes(question));
 }
 
 export default { config, onCall };
