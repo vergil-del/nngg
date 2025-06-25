@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const config = {
-  name: "اضف-امر",
+  name: "أمردد",
   aliases: ["addcmd"],
   version: "1.0.0",
   description: "إضافة أمر جديد إلى البوت",
