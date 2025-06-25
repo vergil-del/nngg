@@ -13,7 +13,13 @@ const config = {
 
 async function onCall({ message, args, getLang }) {
   const text = args.join(' ');
-  
+  if (!text || text === '') return message.reply("داير شنو يا بل ಠ_ಠ ؟");
+  if (text.includes('من مطورك') || text.includes('من صنعك')) return message.reply("تم تطويري من قبل صلاح الدين المعروف بي Rako San ");
+  if (text.includes('من أنت')) return message.reply(" أنا مشمش، مصمم من قبل عمك صلاح الدين لمساعدتك في الحصول على المعلومات 🐢.");
+  if (!text || text === 'مطورك') return message.reply("مطوري صلاح عمك  يا ناعم 🐸");
+  if (text.includes('صلاح الدين ') || text.includes('راكو سان')) return message.reply("عمك وعم الجميع 🐸💖");
+  if (text.includes('اسمك')) || text.includes('اسمك منو')) return message.reply("اسمي مشمش يا دنقلا 🐸");
+
   // الردود المحلية على الأسئلة الشائعة
   if (!text || text === '') return message.reply("مرحبًا! كيف يمكنني مساعدتك؟ 🐸");
   if (text.includes('كيفك') || text.includes('كيف حالك')) return message.reply("تمام، أنا بخير. شكرًا على السؤال! 🐸");
