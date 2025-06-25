@@ -3,7 +3,7 @@ const config = {
   description: "مضاد شتم",
   usage: "[تشغيل/ايقاف]",
   cooldown: 5,
-  permissions: [1,2],
+  permissions: [1],
   credits: "XaviaTeam",
 };
 
@@ -18,19 +18,19 @@ const langData = {
 
 const badWords = ["لوطي", "كسمك", "كس", "كسمكم", "نيك", "قحبة", "قحب", "سب"];
 
-async function onCall({ message, getLang, data }) {
+async function onCall({ message, args, getLang, data }) {
   if (!message.isGroup) return;
   const { threadID, senderID, body } = message;
   const threadInfo = data.thread.info;
   const { adminIDs } = threadInfo;
 
-  if (message.args && message.args[0] == "تشغيل") {
+  if (args[0] == "تشغيل") {
     if (!adminIDs.some((e) => e == global.botID)) return message.reply(getLang("notAdmin"));
     global.db.set(`anti_bad_words_${threadID}`, true);
     return message.reply(getLang("enabled"));
   }
 
-  if (message.args && message.args[0] == "ايقاف") {
+  if (args[0] == "ايقاف") {
     global.db.set(`anti_bad_words_${threadID}`, false);
     return message.reply(getLang("disabled"));
   }
