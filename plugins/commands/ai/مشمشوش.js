@@ -29,7 +29,7 @@ async function onCall({ message, args, getLang }) {
     
     // تعديل الرد من الAPI
     let response = res.data.response;
-    response = response.replace(/أنا/g, 'برنامج لغوي');
+    response = response.replace(/أنا/g, '🐢');
     response = response.replace(/مرحبًا/g, 'اوه يبدو انك تحتاج الى مساعدة');
     response = `اوه يبدو انك ${getInsult()}, ${response} 🐸`;
     
