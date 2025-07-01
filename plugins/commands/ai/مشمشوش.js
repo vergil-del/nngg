@@ -29,7 +29,7 @@ async function onCall({ message, args, getLang }) {
     
     // تعديل الرد من الAPI
     let response = res.data.response;
-    response = response.replace(/أنا/g, '(𖠂ᴗ𖠂)');
+    response = response.replace(/أنا/g, '✨');
     response = response.replace(/مرحبًا/g, 'اوها يبدو انك تحتاج الى مساعدة');
     response = `اها يبدو انك ${getInsult()}, ${response} 🐸`;
     
@@ -41,7 +41,7 @@ async function onCall({ message, args, getLang }) {
 
 // دالة للحصول على إهانة عشوائية
 function getInsult() {
-  const insults = ['احمق', 'غبي', 'مجنون', 'جاهل', 'متهور', 'تلفان'];
+  const insults = ['احمق', 'غبي', 'مجنون', 'جاهل', 'متهور',];
   return insults[Math.floor(Math.random() * insults.length)];
 }
 
