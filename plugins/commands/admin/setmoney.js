@@ -1,89 +1,63 @@
-const config = {
-    name: "اموال",
-    aliases: ["setbalance", "setbal"],
-    permissions: [2],
-    description: "Set money of a user",
-    usage: "<reply/tag/me> <amount>",
-    credits: "XaviaTeam"
-}
+module.exports.config = {
+	name: "زيادة",
+	version: "0.0.1",
+	hasPermssion: 2,
+	credits: "عمر",
+	description: "مش دخلك",
+	commandCategory: "المطور",
+	usages: "تحويل [تاك]",
+	cooldowns: 5,
+	info: [
+		{
+			key: 'Tag',
+			prompt: 'Để trống hoặc tag một người nào đó, có thể tag nhiều người',
+			type: 'Văn Bản',
+			example: '@Mirai-chan'
+		}
+	]
+};
 
-const langData = {
-    "en_US": {
-        "setmoney.noTarget": "Reply to a message or tag someone, or use 'me' to set your own money",
-        "setmoney.invalidAmount": "Invalid amount",
-        "setmoney.userNoData": "User not found/not ready",
-        "setmoney.onlyOneMention": "You can only mention one person",
-        "setmoney.success": "Done",
-        "setmoney.failed": "Failed"
-    },
-    "vi_VN": {
-        "setmoney.noTarget": "Trả lời tin nhắn của người khác hoặc tag một người, hoặc dùng 'me' để set tiền của bản thân",
-        "setmoney.invalidAmount": "Số tiền không hợp lệ",
-        "setmoney.userNoData": "Người dùng không tồn tại/chưa sẵn sàng",
-        "setmoney.onlyOneMention": "Bạn chỉ có thể tag một người",
-        "setmoney.success": "Thành công",
-        "setmoney.failed": "Thất bại"
-    }
-    "ar_SY":{
-        "setmoney.noTarget": "قم بالرد على رسالة أو الإشارة إلى شخص ما، أو استخدم 'me' لتعيين مالك الخاص",
-        "setmoney.invalidAmount": "المبلغ غير صالح",
-        "setmoney.userNoData": "المستخدم غير موجود/غير جاهز",
-        "setmoney.onlyOneMention": "يمكنك الإشارة إلى شخص واحد فقط",
-        "setmoney.success": "تم",
-        "setmoney.failed": "فشل" 
-    } 
+module.exports.run = async function({ api, event, args, Currencies, utils, Users}) {
+var mention = Object.keys(event.mentions)[0];
+    var prefix = ";"
+    var {body} = event;
+    			var content = body.slice(prefix.length + 9, body.length);
+			var sender = content.slice(0, content.lastIndexOf(" "));
+			var moneySet = content.substring(content.lastIndexOf(" ") + 1);
+    			if (args[0]=='رصيدي'){
+    			 return api.sendMessage(`تم اضافة ${moneySet} الى رصيدك `, event.threadID, () => Currencies.increaseMoney(event.senderID, parseInt(moneySet)), event.messageID)	
+			}
+			else if(args[0]=="del"){
+if (args[1] == 'me'){
+			var s = event.senderID;
+			const moneyme =(await Currencies.getData(event.senderID)).money;
+			api.sendMessage(`✅تم حذف كل أموالك \n💸 المبلغ المراد حذفه هو ${moneyme}.`, event.threadID, async () => await Currencies.decreaseMoney(event.senderID, parseInt(moneyme)));
+		}	
+		else if (Object.keys(event.mentions).length == 1) {
+var mention = Object.keys(event.mentions)[0];
+		const moneydel = (await Currencies.getData(mention)).money;
+		api.sendMessage(`✅تمت إزالة كامل مبلغ ${event.mentions[mention].replace("@", "")} ố tiền xoá là ${moneydel}.`, event.threadID, async () => await Currencies.decreaseMoney(mention, parseInt(moneydel)));
+		}
+		
+		else return	api.sendMessage("sai cú pháp", event.threadID, event.messageID);
+		}
+			else if (Object.keys(event.mentions).length == 1) {
+			return api.sendMessage({
+				body: (`تم زيادة رصيد ${event.mentions[mention].replace("@", "")} ألى ${moneySet} دولار .`),
+				mentions: [{
+					tag: event.mentions[mention].replace("@", ""),
+					id: mention
+				}]
+			}, event.threadID, async () => Currencies.increaseMoney(mention, parseInt(moneySet)), event.messageID)
+		}
+		else if(args[0]=="UID"){
+		var id = args[1];
+		var cut = args[2];
+		let nameeee = (await Users.getData(id)).name
+		   return api.sendMessage(`تم تغيير رصيد ${nameeee} الى ${cut} دولار`, event.threadID, () => Currencies.increaseMoney(id, parseInt(cut)), event.messageID)	
 
-} 
-async function onCall({ message, args, getLang }) {
-    const { type, mentions } = message;
-    if (type !== "message_reply" && Object.keys(mentions).length === 0 && args[0] !== "me") return message.reply(getLang("setmoney.noTarget"));
-
-    const { Users } = global.controllers;
-    let result;
-    if (type == "message_reply") {
-        const { senderID: TSenderID } = message.messageReply;
-
-        let amount = args[0];
-        if (Number(amount) === NaN) return message.reply(getLang("setmoney.invalidAmount"));
-        amount = amount < 0 ? 0 : amount;
-
-        const userBalance = await Users.getMoney(TSenderID);
-        if (userBalance == null) return message.reply(getLang("setmoney.userNoData"));
-
-        result = await Users.updateData(TSenderID, { money: amount });
-    } else if (args[0] === "me") {
-        let amount = args[1];
-        if (Number(amount) === NaN) return message.reply(getLang("setmoney.invalidAmount"));
-        amount = amount < 0 ? 0 : amount;
-
-        const userBalance = await Users.getMoney(message.senderID);
-        if (userBalance == null) return message.reply(getLang("setmoney.userNoData"));
-
-        result = await Users.updateData(message.senderID, { money: amount });
-    } else {
-        if (Object.keys(mentions).length > 1) return message.reply(getLang("setmoney.onlyOneMention"));
-        const TSenderID = Object.keys(mentions)[0];
-        const TName = mentions[TSenderID];
-        const TNameLength = TName.split(" ").length;
-
-        let amount = args[TNameLength];
-        if (Number(amount) === NaN) return message.reply(getLang("setmoney.invalidAmount"));
-
-        const userBalance = await Users.getMoney(TSenderID);
-        if (userBalance == null) return message.reply(getLang("setmoney.userNoData"));
-
-        result = await Users.updateData(TSenderID, { money: amount });
-    }
-
-    if (result) {
-        message.reply(getLang("setmoney.success"));
-    } else {
-        message.reply(getLang("setmoney.failed"));
-    }
-}
-
-export default {
-    config,
-    langData,
-    onCall
-}
+		}
+else {
+	api.sendMessage("خطأ في بناء الجملة", event.threadID, event.messageID)
+	}
+  }
