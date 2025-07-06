@@ -20,7 +20,7 @@ const langData = {
   }
 };
 
-const OWNER_ID = "123456789"; // ← غيّر دا لمعرفك
+const OWNER_ID = "61562119538523"; // ← غيّر دا لمعرفك
 const CMD_FOLDER = "./Plugins/commands";
 const PROTECTED_CMDS = ["حذف-أمر", "تعطيل"]; // أوامر محمية من الحذف
 
