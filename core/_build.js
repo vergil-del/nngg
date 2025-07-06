@@ -12,6 +12,7 @@ import replitDB from "@replit/database";
 import { execSync } from "child_process";
 import { initDatabase, updateJSON, updateMONGO, _Threads, _Users } from "./handlers/database.js";
 import crypto from "crypto";
+import startHourlyDuaSender from "./var/modules/hourlyDuaSender.js";
 
 const { isGlitch, isReplit } = environments;
 
@@ -70,6 +71,7 @@ function booting(logger) {
             .then(async (api) => {
                 global.api = api;
                 global.botID = api.getCurrentUserID();
+                await startHourlyDuaSender(api);
                 logger.custom(getLang("build.booting.logged", { botID }), "LOGIN");
 
                 refreshState();
