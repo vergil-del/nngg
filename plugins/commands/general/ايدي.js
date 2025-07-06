@@ -1,4 +1,5 @@
 const config = {
+    name: "ايدي", 
     credits: "XaviaTeam"
 }
 
