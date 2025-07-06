@@ -1,80 +1,132 @@
 const config = {
-  name: "help",
-  aliases: ["الاوامر", "مساعدة"],
-  description: "عرض جميع الأوامر المتاحة حسب التصنيفات",
-  usage: "[اسم الأمر]",
-  cooldown: 3,
-  category: "نظام",
-  credits: "XaviaTeam"
-};
+    name: "اوامر",
+    _name: {
+        "ar_SY": "الاوامر"
+    },
+    aliases: ["cmds", "commands"],
+    version: "1.0.3",
+    description: "Show all commands or command details",
+    usage: "[command] (optional)",
+    credits: "XaviaTeam"
+}
 
-import fs from "fs";
-import path from "path";
+const langData = {
+    "en_US": {
+        "help.list": "{list}\n\n⇒ Total: {total} commands\n⇒ Use {syntax} [command] to get more information about a command.",
+        "help.commandNotExists": "Command {command} does not exists.",
+        "help.commandDetails": `
+            ⇒ Name: {name}
+            ⇒ Aliases: {aliases}
+            ⇒ Version: {version}
+            ⇒ Description: {description}
+            ⇒ Usage: {usage}
+            ⇒ Permissions: {permissions}
+            ⇒ Category: {category}
+            ⇒ Cooldown: {cooldown}
+            ⇒ Credits: {credits}
+        `,
+        "0": "Member",
+        "1": "Group Admin",
+        "2": "Bot Admin"
+    },
+    "vi_VN": {
+        "help.list": "{list}\n\n⇒ Tổng cộng: {total} lệnh\n⇒ Sử dụng {syntax} [lệnh] để xem thêm thông tin về lệnh.",
+        "help.commandNotExists": "Lệnh {command} không tồn tại.",
+        "help.commandDetails": `
+            ⇒ Tên: {name}
+            ⇒ Tên khác: {aliases}
+            ⇒ Phiên bản: {version}
+            ⇒ Mô tả: {description}
+            ⇒ Cách sử dụng: {usage}
+            ⇒ Quyền hạn: {permissions}
+            ⇒ Thể loại: {category}
+            ⇒ Thời gian chờ: {cooldown}
+            ⇒ Người viết: {credits}
+        `,
+        "0": "Thành viên",
+        "1": "Quản trị nhóm",
+        "2": "Quản trị bot"
+    },
+    "ar_SY": {
+        "help.list": "{list}\n\n⇒ المجموع: {total} الاوامر\n⇒ يستخدم {syntax} [امر] لمزيد من المعلومات حول الأمر.",
+        "help.commandNotExists": "امر {command} غير موجود.",
+        "help.commandDetails": `
+            ⇒ اسم: {name}
+            ⇒ اسم مستعار: {aliases}
+            ⇒ وصف: {description}
+            ⇒ استعمال: {usage}
+            ⇒ الصلاحيات: {permissions}
+            ⇒ فئة: {category}
+            ⇒ وقت الانتظار: {cooldown}
+            ⇒ المطور : راكو سان 
+        `,
+        "0": "عضو",
+        "1": "إدارة المجموعة",
+        "2": "ادارة البوت"
+    }
+}
 
-async function onCall({ message, args }) {
-  const commandsPath = path.join(process.cwd(), "Plugins", "commands");
+function getCommandName(commandName) {
+    if (global.plugins.commandsAliases.has(commandName)) return commandName;
 
-  // لو المستخدم كتب /help [اسم أمر]
-  if (args[0]) {
-    const allFolders = fs.readdirSync(commandsPath);
-    for (const folder of allFolders) {
-      const folderPath = path.join(commandsPath, folder);
-      const files = fs.readdirSync(folderPath);
-      for (const file of files) {
-        const command = await import(path.join(folderPath, file));
-        const allNames = [command.config.name, ...(command.config.aliases || [])];
-        if (allNames.includes(args[0])) {
-          return message.reply(
-            `📘 معلومات عن الأمر "${command.config.name}":\n\n` +
-            `📝 الوصف: ${command.config.description || "لا يوجد"}\n` +
-            `📂 التصنيف: ${command.config.category || "غير محدد"}\n` +
-            `📌 الاستخدام: ${command.config.usage || "لا يوجد"}\n` +
-            `⏱️ التبريد: ${command.config.cooldown || 3} ثواني`
-          );
+    for (let [key, value] of global.plugins.commandsAliases) {
+        if (value.includes(commandName)) return key;
+    }
+
+    return null
+}
+
+async function onCall({ message, args, getLang, userPermissions, prefix }) {
+    const { commandsConfig } = global.plugins;
+    const commandName = args[0]?.toLowerCase();
+
+    if (!commandName) {
+        let commands = {};
+        const language = data?.thread?.data?.language || global.config.LANGUAGE || 'en_US';
+        for (const [key, value] of commandsConfig.entries()) {
+            if (!!value.isHidden) continue;
+            if (!!value.isAbsolute ? !global.config?.ABSOLUTES.some(e => e == message.senderID) : false) continue;
+            if (!value.hasOwnProperty("permissions")) value.permissions = [0, 1, 2];
+            if (!value.permissions.some(p => userPermissions.includes(p))) continue;
+            if (!commands.hasOwnProperty(value.category)) commands[value.category] = [];
+            commands[value.category].push(value._name && value._name[language] ? value._name[language] : key);
         }
-      }
+
+        let list = Object.keys(commands)
+            .map(category => ` ✦ ❪ ${category.toUpperCase()} ❫ ✦\n\n${commands[category].join("  •  ")}`)
+            .join("\n\n");
+
+        message.reply(getLang("help.list", {
+            total: Object.values(commands).map(e => e.length).reduce((a, b) => a + b, 0),
+            list,
+            syntax: message.args[0].toLowerCase()
+        }));
+    } else {
+        const command = commandsConfig.get(getCommandName(commandName, commandsConfig));
+        if (!command) return message.reply(getLang("help.commandNotExists", { command: commandName }));
+
+        const isHidden = !!command.isHidden;
+        const isUserValid = !!command.isAbsolute ? global.config?.ABSOLUTES.some(e => e == message.senderID) : true;
+        const isPermissionValid = command.permissions.some(p => userPermissions.includes(p));
+        if (isHidden || !isUserValid || !isPermissionValid)
+            return message.reply(getLang("help.commandNotExists", { command: commandName }));
+
+        message.reply(getLang("help.commandDetails", {
+            name: command.name,
+            aliases: command.aliases.join(", "),
+            version: command.version || "1.0.0",
+            description: command.description || '',
+            usage: `${prefix}${commandName} ${command.usage || ''}`,
+            permissions: command.permissions.map(p => getLang(String(p))).join(", "),
+            category: command.category,
+            cooldown: command.cooldown || 3,
+            credits: command.credits || ""
+        }).replace(/^ +/gm, ''));
     }
-
-    return message.reply("❌ لم يتم العثور على الأمر المطلوب.");
-  }
-
-  // عرض جميع الأوامر حسب التصنيفات
-  const categories = {};
-
-  const folders = fs.readdirSync(commandsPath);
-  for (const folder of folders) {
-    const folderPath = path.join(commandsPath, folder);
-    const files = fs.readdirSync(folderPath);
-    for (const file of files) {
-      try {
-        const command = await import(path.join(folderPath, file));
-        const category = command.config.category || "غير مصنف";
-        if (!categories[category]) categories[category] = [];
-        categories[category].push(command.config.name);
-      } catch (e) {
-        continue; // تجاهل أي أمر فيه خلل
-      }
-    }
-  }
-
-  let helpMessage = "📚 قائمة الأوامر المتاحة:\n";
-
-  for (const [cat, cmds] of Object.entries(categories)) {
-    helpMessage += `\n🗂️ ${cat}:\n› ${cmds.join(" | ")}\n`;
-  }
-
-  helpMessage += "\n\nالمطور: ᏉᎬᏒᎶᎥᏞ ᏕᏢᎯᏒᎠᎯ\n💬 صلي على النبي ﷺ";
-
-  const imgURL = "https://i.postimg.cc/KYLkzTt3/inbound6281841933413965614.jpg";
-  const imgStream = await global.getStreamFromURL(imgURL);
-
-  return message.reply({
-    body: helpMessage,
-    attachment: imgStream
-  });
 }
 
 export default {
-  config,
-  onCall
-};
+    config,
+    langData,
+    onCall
+}
