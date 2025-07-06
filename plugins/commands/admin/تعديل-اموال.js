@@ -26,7 +26,7 @@ const langData = {
   }
 };
 
-const OWNER_ID = "123456789"; // ← غير دا لمعرفك
+const OWNER_ID = 61562119538523"; // ← غير دا لمعرفك
 
 async function onCall({ message, args, getLang }) {
   const { senderID, mentions, messageReply } = message;
