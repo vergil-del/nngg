@@ -1,50 +1,77 @@
-import axios from "axios";
-
 const config = {
   name: "help",
-  aliases: ["مساعدة", "الاوامر"],
-  description: "عرض جميع أوامر البوت حسب التصنيفات",
-  usage: "[none]",
+  aliases: ["الاوامر", "مساعدة"],
+  description: "عرض جميع الأوامر المتاحة حسب التصنيفات",
+  usage: "[اسم الأمر]",
   cooldown: 3,
+  category: "نظام",
   credits: "XaviaTeam"
 };
 
-async function onCall({ message, args, commands }) {
-  const categorized = {};
+import fs from "fs";
+import path from "path";
 
-  for (const cmd of commands) {
-    const category = cmd.config.category || "غير مصنفة";
-    if (!categorized[category]) categorized[category] = [];
-    categorized[category].push(`🔹 ${cmd.config.name}`);
+async function onCall({ message, args }) {
+  const commandsPath = path.join(process.cwd(), "Plugins", "commands");
+
+  // لو المستخدم كتب /help [اسم أمر]
+  if (args[0]) {
+    const allFolders = fs.readdirSync(commandsPath);
+    for (const folder of allFolders) {
+      const folderPath = path.join(commandsPath, folder);
+      const files = fs.readdirSync(folderPath);
+      for (const file of files) {
+        const command = await import(path.join(folderPath, file));
+        const allNames = [command.config.name, ...(command.config.aliases || [])];
+        if (allNames.includes(args[0])) {
+          return message.reply(
+            `📘 معلومات عن الأمر "${command.config.name}":\n\n` +
+            `📝 الوصف: ${command.config.description || "لا يوجد"}\n` +
+            `📂 التصنيف: ${command.config.category || "غير محدد"}\n` +
+            `📌 الاستخدام: ${command.config.usage || "لا يوجد"}\n` +
+            `⏱️ التبريد: ${command.config.cooldown || 3} ثواني`
+          );
+        }
+      }
+    }
+
+    return message.reply("❌ لم يتم العثور على الأمر المطلوب.");
   }
 
-  let msg = "🧠 قائمة أوامر البوت:\n";
+  // عرض جميع الأوامر حسب التصنيفات
+  const categories = {};
 
-  for (const category in categorized) {
-    const emoji = getEmojiForCategory(category);
-    msg += `\n${emoji} ${category}\n${categorized[category].join('\n')}\n`;
+  const folders = fs.readdirSync(commandsPath);
+  for (const folder of folders) {
+    const folderPath = path.join(commandsPath, folder);
+    const files = fs.readdirSync(folderPath);
+    for (const file of files) {
+      try {
+        const command = await import(path.join(folderPath, file));
+        const category = command.config.category || "غير مصنف";
+        if (!categories[category]) categories[category] = [];
+        categories[category].push(command.config.name);
+      } catch (e) {
+        continue; // تجاهل أي أمر فيه خلل
+      }
+    }
   }
 
-  msg += `\n━━━━━━━━━━━━━━\nالمطور: ᏉᎬᏒᎶᎥᏞ ᏕᏢᎯᏒᎠᎯ\n🌸 صلي على النبي ﷺ`;
+  let helpMessage = "📚 قائمة الأوامر المتاحة:\n";
 
-  const img = await global.getStreamFromURL("https://i.postimg.cc/KYLkzTt3/inbound6281841933413965614.jpg");
+  for (const [cat, cmds] of Object.entries(categories)) {
+    helpMessage += `\n🗂️ ${cat}:\n› ${cmds.join(" | ")}\n`;
+  }
+
+  helpMessage += "\n\nالمطور: ᏉᎬᏒᎶᎥᏞ ᏕᏢᎯᏒᎠᎯ\n💬 صلي على النبي ﷺ";
+
+  const imgURL = "https://i.postimg.cc/KYLkzTt3/inbound6281841933413965614.jpg";
+  const imgStream = await global.getStreamFromURL(imgURL);
 
   return message.reply({
-    body: msg.trim(),
-    attachment: img
+    body: helpMessage,
+    attachment: imgStream
   });
-}
-
-function getEmojiForCategory(name) {
-  const n = name.toLowerCase();
-  if (n.includes("fun") || n.includes("تسلية")) return "🎮";
-  if (n.includes("group") || n.includes("مجموعة")) return "👥";
-  if (n.includes("admin") || n.includes("مسؤول")) return "🛠️";
-  if (n.includes("user") || n.includes("مستخدم")) return "👤";
-  if (n.includes("owner") || n.includes("مطور")) return "👑";
-  if (n.includes("event") || n.includes("فعالية")) return "🎉";
-  if (n.includes("system") || n.includes("نظام")) return "⚙️";
-  return "📦";
 }
 
 export default {
