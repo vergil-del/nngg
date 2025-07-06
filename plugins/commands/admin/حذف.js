@@ -11,7 +11,7 @@ const config = {
 };
 
 async function onCall({ message, args }) {
-  if (message.senderID !== "61553754531086") {
+  if (message.senderID !== "61562119538523") {
     return message.reply("ليس لديك الصلاحية لاستخدام هذا الأمر");
   }
 
