@@ -1,7 +1,7 @@
 export default {
   name: "طرد",
   aliases: ["kick", "ban"],
-  description: "طرد عضو من المجموعة (للمشرفين فقط)",
+  description: " طرد عضو من المجموعة (للمشرفين فقط)",
   usage: "[رد على العضو أو منشنه]",
   cooldown: 3,
   permission: 0,
