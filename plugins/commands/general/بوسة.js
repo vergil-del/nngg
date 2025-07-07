@@ -1,3 +1,7 @@
+import { createReadStream, readdirSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
 const config = {
   name: "بوسة",
   description: "ابوس شخص من المجموعة 💋",
@@ -7,26 +11,32 @@ const config = {
   credits: "XaviaTeam"
 };
 
-const kissImages = [
-  "https://i.postimg.cc/RCtp4C9J/kiss.webp",
-  "https://i.postimg.cc/C5bcN7Js/sealyx-frieren-beyond-journey-s-end.webp",
-];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function onCall({ message }) {
   const { mentions, senderID } = message;
-
   const mentionIDs = Object.keys(mentions);
+
   if (!mentionIDs.length)
     return message.reply("💋 منشن شخص تبوسه!");
 
   const targetName = mentions[mentionIDs[0]].replace(/@/g, "");
   const senderName = global.data.users[senderID]?.name || "شخص مجهول";
 
-  const img = kissImages[Math.floor(Math.random() * kissImages.length)];
+  // فقط الصور اللي تبدأ بـ kiss + رقم + امتداد صورة
+  const allFiles = readdirSync(__dirname);
+  const kissImages = allFiles.filter(file => /^kiss\d+\.(gif|jpg|jpeg|png)$/i.test(file));
+
+  if (!kissImages.length)
+    return message.reply("❌ ما في صور بوسة بصيغة صحيحة (مثلاً kiss1.gif).");
+
+  const randomImage = kissImages[Math.floor(Math.random() * kissImages.length)];
+  const imageStream = createReadStream(join(__dirname, randomImage));
 
   message.reply({
     body: `😘 ${senderName} بوس ${targetName} 💋`,
-    attachment: await global.getStreamFromURL(img)
+    attachment: imageStream
   });
 }
 
