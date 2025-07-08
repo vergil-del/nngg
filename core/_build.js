@@ -15,7 +15,8 @@ import crypto from "crypto";
 import startHourlyDuaSender from "./var/modules/hourlyDuaSender.js";
 
 const { isGlitch, isReplit } = environments;
-
+global.client = global.client || {};
+global.client.handleReply = [];
 process.stdout.write(String.fromCharCode(27) + "]0;" + "Xavia" + String.fromCharCode(7));
 
 process.on("unhandledRejection", (reason, p) => {
