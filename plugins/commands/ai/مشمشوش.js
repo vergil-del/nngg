@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const config = {
-  name: 'اوتشيها',
+  name: 'موزان',
   version: '1.0',
   permissions: 0,
   credits: 'rapido',
@@ -15,9 +15,9 @@ async function onCall({ message, args, getLang }) {
   const text = args.join(' ');
   
   // الردود المحلية على الأسئلة الشائعة
-  if (!text || text === '') return message.reply("دابي عمك (𖠂ᴗ𖠂)");
+  if (!text || text === '') return message.reply("فيرجل عمك 🐦‍⬛❄️");
   if (text.includes('كيفك') || text.includes('كيف حالك')) return message.reply("تمام، أنا بخير. شكرًا على السؤال! 🐸");
-  if (text.includes('من أنت')) return message.reply("أنا مشمش، مصمم لمساعدتك في الحصول 100090544069481 المعلومات. 🐸");
+  if (text.includes('من أنت')) return message.reply("أنا موزان، مصمم لمساعدتك في الحصول 100090544069481 المعلومات. 🐸");
 
   try {
     let imageUrl;
