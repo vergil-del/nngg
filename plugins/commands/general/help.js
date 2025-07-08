@@ -13,7 +13,7 @@ const config = {
 const langData = {
     "en_US": {
         "help.list": "{list}\n\n⇒ Total: {total} commands\n⇒ Use {syntax} [command] to get more information about a command.",
-        "help.commandNotExists": "Command {command} does not exists.",
+        "help.commandNotExists": "Command {command} does not exist.",
         "help.commandDetails": `
             ⇒ Name: {name}
             ⇒ Aliases: {aliases}
@@ -45,24 +45,24 @@ const langData = {
         `,
         "0": "Thành viên",
         "1": "Quản trị nhóm",
-        "2": "Quản trị bot"
+        "2": "Quản trị البوت"
     },
     "ar_SY": {
-        "help.list": "{list}\n\n⇒ المجموع: {total} الاوامر\n⇒ يستخدم {syntax} [امر] لمزيد من المعلومات حول الأمر.",
-        "help.commandNotExists": "امر {command} غير موجود.",
+        "help.list": "{list}\n\n➤ المجموع: {total} أمر\n➤ استخدم {syntax} [اسم الأمر] لعرض التفاصيل.\n\n⇨ المطور: ᏉᎬᏒᎶᎥᏞ ᏕᏢᎯᏒᎠᎯ\n⇨ صلي على النبي ﷺ",
+        "help.commandNotExists": "الأمر {command} غير موجود.",
         "help.commandDetails": `
-            ⇒ اسم: {name}
-            ⇒ اسم مستعار: {aliases}
-            ⇒ وصف: {description}
-            ⇒ استعمال: {usage}
+            ⇒ الاسم: {name}
+            ⇒ أسماء بديلة: {aliases}
+            ⇒ الوصف: {description}
+            ⇒ الاستخدام: {usage}
             ⇒ الصلاحيات: {permissions}
-            ⇒ فئة: {category}
+            ⇒ الفئة: {category}
             ⇒ وقت الانتظار: {cooldown}
-            ⇒ المطور : راكو سان 
+            ⇒ المطور: {credits}
         `,
         "0": "عضو",
         "1": "إدارة المجموعة",
-        "2": "ادارة البوت"
+        "2": "إدارة البوت"
     }
 }
 
@@ -76,30 +76,36 @@ function getCommandName(commandName) {
     return null
 }
 
-async function onCall({ message, args, getLang, userPermissions, prefix }) {
+async function onCall({ message, args, getLang, userPermissions, prefix, data }) {
     const { commandsConfig } = global.plugins;
     const commandName = args[0]?.toLowerCase();
+    const language = data?.thread?.data?.language || global.config.LANGUAGE || 'en_US';
 
     if (!commandName) {
         let commands = {};
-        const language = data?.thread?.data?.language || global.config.LANGUAGE || 'en_US';
+
         for (const [key, value] of commandsConfig.entries()) {
             if (!!value.isHidden) continue;
             if (!!value.isAbsolute ? !global.config?.ABSOLUTES.some(e => e == message.senderID) : false) continue;
             if (!value.hasOwnProperty("permissions")) value.permissions = [0, 1, 2];
             if (!value.permissions.some(p => userPermissions.includes(p))) continue;
-            if (!commands.hasOwnProperty(value.category)) commands[value.category] = [];
-            commands[value.category].push(value._name && value._name[language] ? value._name[language] : key);
+
+            const category = value.category || "Uncategorized";
+            if (!commands.hasOwnProperty(category)) commands[category] = [];
+
+            commands[category].push(value._name && value._name[language] ? value._name[language] : key);
         }
 
         let list = Object.keys(commands)
-            .map(category => ` ✦ ❪ ${category.toUpperCase()} ❫ ✦\n\n${commands[category].join("  •  ")}`)
+            .map(category =>
+                `╭── ❖ 『 ${category.toUpperCase()} 』 ❖ ──╮\n│ ${commands[category].join("\n│ ")}\n╰───────────────────────╯`
+            )
             .join("\n\n");
 
         message.reply(getLang("help.list", {
             total: Object.values(commands).map(e => e.length).reduce((a, b) => a + b, 0),
             list,
-            syntax: message.args[0].toLowerCase()
+            syntax: prefix
         }));
     } else {
         const command = commandsConfig.get(getCommandName(commandName, commandsConfig));
@@ -120,7 +126,7 @@ async function onCall({ message, args, getLang, userPermissions, prefix }) {
             permissions: command.permissions.map(p => getLang(String(p))).join(", "),
             category: command.category,
             cooldown: command.cooldown || 3,
-            credits: command.credits || ""
+            credits: command.credits || "XaviaTeam"
         }).replace(/^ +/gm, ''));
     }
 }
