@@ -6,46 +6,38 @@ const config = {
     permissions: [2],
     credits: "XaviaTeam",
     isAbsolute: true
-}
+};
 
 const langData = {
-    "vi_VN": {
-        "invalidIndexes": "Số thứ tự không hợp lệ",
-        "successDeny": "Đã từ chối thành công {success} nhóm",
-        "failDeny": "Một số nhóm không thể từ chối được:\n{fail}",
-        "denied": "Rất tiếc, nhóm của bạn đã bị từ chối",
-        "successApprove": "Đã phê duyệt thành công {success} nhóm",
-        "failApprove": "Một số nhóm không thể phê duyệt được:\n{fail}",
-        "approved": "Chúc mừng, nhóm của bạn đã được phê duyệt\n{prefix}help để xem danh sách lệnh",
-        "pendingThreadList": "Danh sách nhóm đang chờ phê duyệt:\n{pendingThread}\n\nReply theo cú pháp:\nĐể từ chối: deny <index/all>\nĐể chấp nhận: approve <index/all>",
-        "pendingThreadListEmpty": "Không có nhóm nào đang chờ phê duyệt",
-        "error": "Đã có lỗi xảy ra, vui lòng thử lại sau"
-    },
-    "en_US": {
-        "invalidIndexes": "Invalid indexes",
-        "successDeny": "Denied successfully {success} group(s)",
-        "failDeny": "Some groups could not be denied:\n{fail}",
-        "denied": "Sorry, your group has been denied",
-        "successApprove": "Approved successfully {success} group(s)",
-        "failApprove": "Some groups could not be approved:\n{fail}",
-        "approved": "Congratulations, your group has been approved\n{prefix}help to see the list of commands",
-        "pendingThreadList": "List of pending threads:\n{pendingThread}\n\nReply with the following syntax:\nTo deny: deny <index/all>\nTo approve: approve <index/all>",
-        "pendingThreadListEmpty": "There are no pending threads",
-        "error": "An error has occurred, please try again later"
-    },
     "ar_SY": {
         "invalidIndexes": "فهارس غير صالحة",
-        "successDeny": "تم الرفض بنجاح {success} مجموعة(محموعات)",
-        "failDeny": "لا يمكن إنكار بعض الجماعات:\n{fail}",
-        "denied": "آسف ، تم رفض مجموعتك",
-        "successApprove": "تمت الموافقة بنجاح {success} مجموعة(مجموعات)",
-        "failApprove": "لا يمكن الموافقة على بعض المجموعات:\n{fail}",
-        "approved": "✵───── ⋆⋅☆⋅⋆ ─────✵\n\n تهانينا، تمت الموافقه على مجموعتك 🐢 {prefix}اوامر لرؤية قائمة الأوامر\n\n اسم البوت: موزان \n\n اسم المطور: فيرجل سبارتا \n\n https://www.facebook.com/mozan50sama \n\n ✵───── ⋆⋅☆⋅⋆ ─────✵",
-        "pendingThreadList": "قائمة المواضيع المعلقة:\n{pendingThread}\n\nالرد بالصيغة التالية:\nللرفض: رفض <index/all>\nليوافق: يوافق <index/all>",
-        "pendingThreadListEmpty": "لا توجد مواضيع معلقة",
-        "error": "حصل خطأ. الرجاء المحاوله مرة اخرى"
+        "successDeny": "تم الرفض بنجاح {success} مجموعة",
+        "failDeny": "فشل في رفض المجموعات التالية:\n{fail}",
+        "denied": "عذرًا، تم رفض مجموعتك من قبل الإدارة.",
+        "successApprove": "تمت الموافقة بنجاح على {success} مجموعة",
+        "failApprove": "فشل في الموافقة على المجموعات التالية:\n{fail}",
+        "approved": `
+✵───────⭓ تمت الموافقة ⭓───────✵
+
+✨ تمّت الموافقة على هذه المجموعة بنجاح 🎉
+
+🤖 اسم البوت: {botname}
+🔧 الإصدار: {version}
+📚 لعرض جميع الأوامر: اكتب {prefix}اوامر
+
+👑 المطور: ᏉᎬᏒᎶᎥᏞ ᏕᏢᎯᏒᎠᎯ
+🔗 حساب المطور:
+https://www.facebook.com/mozan50sama
+
+💫 تمتع باستخدام البوت ولا تنسى الصلاة على النبي ﷺ
+
+✵───────⭓ 𝑴𝒐𝒛𝒂𝒂𝒏 𝒅𝒆𝒎𝒐𝒏 𝒌𝒊𝒏𝒈 ⭓───────✵
+        `,
+        "pendingThreadList": "📌 المجموعات في انتظار الموافقة:\n{pendingThread}\n\n↪️ للرفض: `deny <الرقم>` أو `deny all`\n✅ للموافقة: `approve <الرقم>` أو `approve all`",
+        "pendingThreadListEmpty": "لا توجد مجموعات قيد الانتظار حالياً.",
+        "error": "❌ حصل خطأ غير متوقع، حاول مرة أخرى لاحقًا."
     }
-}
+};
 
 function handleError(e) {
     console.error(e);
@@ -57,7 +49,7 @@ function out(botID, cTID) {
         global.api.removeUserFromGroup(botID, cTID, (err) => {
             if (err) return resolve(null), console.error(err);
             resolve(true);
-        })
+        });
     });
 }
 
@@ -66,14 +58,16 @@ async function callback({ message, getLang, eventData }) {
 
     const input = message.body.split(" ");
     const indexes =
-        input[1] == "all" || input[1] == "-a" ?
-            pendingThread.map((_, index) => index) :
-            input
-                .slice(1)
-                .map(index => parseInt(index) - 1)
-                .filter(index => index >= 0 && index < pendingThread.length);
+        input[1] == "all" || input[1] == "-a"
+            ? pendingThread.map((_, index) => index)
+            : input
+                  .slice(1)
+                  .map(index => parseInt(index) - 1)
+                  .filter(index => index >= 0 && index < pendingThread.length);
 
-    let success = 0, fail = [];
+    let success = 0,
+        fail = [];
+
     if (input[0] == "deny" || input[0] == "d") {
         if (indexes.length == 0) return message.reply(getLang("invalidIndexes"));
 
@@ -101,10 +95,14 @@ async function callback({ message, getLang, eventData }) {
         for (const thread of threads) {
             const { threadID: cTID } = thread;
             let threadPrefix = global.data.threads.get(cTID)?.data?.prefix || global.config.PREFIX;
-
-            let _info = await message.send(getLang("approved", {
-                prefix: threadPrefix
-            }), cTID).then(data => data).catch(handleError);
+            let _info = await message
+                .send(getLang("approved", {
+                    prefix: threadPrefix,
+                    botname: global.config.BOTNAME || "موزان",
+                    version: global.config.VERSION || "1.0.0"
+                }), cTID)
+                .then(data => data)
+                .catch(handleError);
 
             if (_info == null) fail.push(cTID);
             else success++;
@@ -143,4 +141,4 @@ export default {
     config,
     langData,
     onCall
-}
+};
