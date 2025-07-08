@@ -2,7 +2,10 @@ import moment from 'moment-timezone';
 import handleEvents from './events.js';
 import { handleDatabase } from './database.js';
 import logger from '../var/modules/logger.js';
+import fs from "fs-extra";
+import path from "path";
 
+const SLEEP_FILE = path.join(process.cwd(), "core/var/sleepList.json");
 
 export default async function handleListen(listenerID) {
     const { handleCommand, handleReaction, handleMessage, handleReply, handleUnsend, handleEvent } = await handleEvents();
@@ -46,6 +49,12 @@ export default async function handleListen(listenerID) {
                 case "message_reply":
                     handleMessage({ ...event });
                     handleReply({ ...event });
+			    try {
+  const sleepList = await fs.readJSON(SLEEP_FILE);
+  if (sleepList.includes(event.threadID)) return;
+} catch (e) {
+  console.error("خطأ في قراءة ملف السكون:", e);
+			    }
                     handleCommand({ ...event });
                     break;
                 case "message_reaction":
