@@ -52,7 +52,7 @@
     "semver": "^7.3.8",
     "string-similarity": "^4.0.4",
     "systeminformation": "^5.25.11",
-    "wikijs": "^7.4.2",
+    "wikijs": "^6.4.0",
     "ws3-fca": "^1.0.12",
     "ytdl-core": "^4.11.5"
   }
