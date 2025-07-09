@@ -1,6 +1,6 @@
 const config = {
   name: "نقاطي",
-  aliases: ["نقاط", "رصيدي"],
+  aliases: ["نقاط"],
   description: "عرض عدد النقاط التي تملكها",
   usage: "",
   cooldown: 3,
