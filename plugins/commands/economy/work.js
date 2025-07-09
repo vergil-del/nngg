@@ -7,64 +7,77 @@ const _30MINUTES = 30 * 60 * 1000;
 const config = {
   name: "عمل",
   aliases: ["wk"],
-  description: "قم بالعمل لكسب المال، مع فرصة نادرة لربح ضخم!",
+  description: "قم بعمل عشوائي للحصول على ذهب 🪙، مع فرصة لربح ضخم أو شغل محشش!",
   credits: "XaviaTeam + Muzan",
   extra: {
-    min: 200,
-    max: 1000,
-    rareMin: 100000,
-    rareMax: 1000000,
-    rareChance: 2, // 2% chance
-    delay: [_30MINUTES, _1HOURS, _3HOURS, _2HOURS, _6HOURS]
+    min: 100,
+    max: 700,
+    rareMin: 10000,
+    rareMax: 50000,
+    rareChance: 3, // 3% فرصة نادرة
+    delay: [_30MINUTES, _1HOURS, _2HOURS, _3HOURS, _6HOURS]
   }
 };
 
 const langData = {
   "ar_SY": {
-    "work.selfNoData": "البيانات الخاصة بك ليست جاهزة.",
-    "work.alreadyWorked": "لقد عملت، يمكنك العمل مرة أخرى بعد {time}.",
-    "work.successfullyWorked": "لقد عملت وكسبت {amount} 💵",
-    "work.rareSuccess": "🎉 حظ خارق! لقد وجدت فرصة عمل نادرة وربحت {amount} 💸💸💸",
-    "work.failed": "حدث خطأ ما، حاول مرة أخرى."
+    "work.selfNoData": "🔁 بياناتك غير جاهزة بعد.",
+    "work.alreadyWorked": "⏳ لقد اشتغلت، ارجع بعد: {time}.",
+    "work.successfullyWorked": "✅ اشتغلت كـ \"{job}\" وربحت {amount} ذهب 🪙",
+    "work.rareSuccess": "💥 فرصة نادرة! اشتغلت كـ \"{job}\" وربحت {amount} ذهب 🪙",
+    "work.failed": "❌ فشل أثناء تنفيذ العمل."
   }
 };
 
+const jobs = [
+  // 20 مهنة عادية
+  "مزارع", "نجار", "سائق تاكسي", "خباز", "كهربائي", "حلاق", "صائغ ذهب", "سائق شاحنة", "صيدلي", "معلم", 
+  "طبيب", "مهندس", "جزار", "صياد", "مبرمج", "بائع خضار", "عامل بناء", "مدرب جيم", "مصور", "حارس أمن",
+
+  // 10 مهن مضحكة ومحششة
+  "مطارد فراخ في السوق 😂", 
+  "مراقب في مجموعة واتساب ساكت 😐", 
+  "فنان شحاتة محترف 😭", 
+  "بائع كلام فارغ في تويتر 🐦", 
+  "خربت فرح وطلعت أجري 🏃‍♂️", 
+  "نمت جنب كباية شاي ☕", 
+  "مراقب خيالاتو في الحوش 🌚", 
+  "جربت أكون ذكي بس الشبكة قطعت 📶", 
+  "صرفت معاشي على PUBG 💸", 
+  "اشتغلت كـ نصيحة في حالة واتساب 💬"
+];
+
 async function onCall({ message, extra, getLang }) {
-  const { Users } = global.controllers;
+  const { Currencies } = global.controllers;
   const { min, max, rareMin, rareMax, rareChance, delay } = extra;
+
   try {
-    const userData = await Users.getData(message.senderID);
-    if (!userData) return message.reply(getLang("work.selfNoData"));
+    const data = await Currencies.getData(message.senderID);
+    if (!data) return message.reply(getLang("work.selfNoData"));
 
-    if (!userData.work) userData.work = { lastWorked: 0, delay: 0 };
+    if (!data.work) data.work = { lastWorked: 0, delay: 0 };
+    const elapsed = Date.now() - data.work.lastWorked;
 
-    const timePassed = Date.now() - userData.work.lastWorked;
-    if (timePassed < userData.work.delay)
-      return message.reply(
-        getLang("work.alreadyWorked", {
-          time: global.msToHMS(userData.work.delay - timePassed),
-        })
-      );
-
-    let amount, messageKey;
-
-    // فرصة نادرة
-    if (Math.random() * 100 < rareChance) {
-      amount = global.random(rareMin, rareMax);
-      messageKey = "work.rareSuccess";
-    } else {
-      amount = global.random(min, max);
-      messageKey = "work.successfullyWorked";
+    if (elapsed < data.work.delay) {
+      const remaining = global.msToHMS(data.work.delay - elapsed);
+      return message.reply(getLang("work.alreadyWorked", { time: remaining }));
     }
 
-    await Users.increaseMoney(message.senderID, amount);
+    const isRare = Math.random() * 100 < rareChance;
+    const amount = global.random(isRare ? rareMin : min, isRare ? rareMax : max);
+    const job = jobs[Math.floor(Math.random() * jobs.length)];
 
-    // تحديد تأخير العمل القادم
-    userData.work.lastWorked = Date.now();
-    userData.work.delay = delay[global.random(0, delay.length - 1)];
-    await Users.updateData(message.senderID, { work: userData.work });
+    await Currencies.increaseGold(message.senderID, amount);
 
-    return message.reply(getLang(messageKey, { amount: global.addCommas(amount) }));
+    data.work.lastWorked = Date.now();
+    data.work.delay = delay[Math.floor(Math.random() * delay.length)];
+    await Currencies.setData(message.senderID, data);
+
+    const msgKey = isRare ? "work.rareSuccess" : "work.successfullyWorked";
+    return message.reply(getLang(msgKey, {
+      job,
+      amount: global.addCommas(amount)
+    }));
   } catch (err) {
     console.error(err);
     return message.reply(getLang("work.failed"));
