@@ -2,8 +2,6 @@ import moment from 'moment-timezone';
 import handleEvents from './events.js';
 import { handleDatabase } from './database.js';
 import logger from '../var/modules/logger.js';
-import fs from "fs-extra";
-import path from "path";
 
 export default async function handleListen(listenerID) {
     const { handleCommand, handleReaction, handleMessage, handleReply, handleUnsend, handleEvent } = await handleEvents();
