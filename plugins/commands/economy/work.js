@@ -5,68 +5,74 @@ const _1HOURS = 1 * 60 * 60 * 1000;
 const _30MINUTES = 30 * 60 * 1000;
 
 const config = {
-    name: "عمل",
-    aliases: ["wk"],
-    description: "Work to earn money",
-    credits: "XaviaTeam",
-    extra: {
-        min: 200,
-        max: 1000,
-        delay: [_30MINUTES, _1HOURS, _3HOURS, _2HOURS, _6HOURS]
-    }
-}
+  name: "عمل",
+  aliases: ["wk"],
+  description: "قم بالعمل لكسب المال، مع فرصة نادرة لربح ضخم!",
+  credits: "XaviaTeam + Muzan",
+  extra: {
+    min: 200,
+    max: 1000,
+    rareMin: 100000,
+    rareMax: 1000000,
+    rareChance: 2, // 2% chance
+    delay: [_30MINUTES, _1HOURS, _3HOURS, _2HOURS, _6HOURS]
+  }
+};
 
 const langData = {
-    "en_US": {
-        "work.selfNoData": "Your data is not ready",
-        "work.alreadyWorked": "You have already worked, you can work again in {time}",
-        "work.successfullyWorked": "You have worked and earned {amount}XC",
-        "work.failed": "Failed"
-    },
-    "vi_VN": {
-        "work.selfNoData": "Dữ liệu của bạn chưa sẵn sàng",
-        "work.alreadyWorked": "Bạn đã làm việc, bạn có thể làm việc lại sau {time}",
-        "work.successfullyWorked": "Bạn đã làm việc và kiếm được {amount}XC",
-        "work.failed": "Thất bại"
-    },
-    "ar_SY": {
-        "work.selfNoData": "البيانات الخاصة بك ليست جاهزة",
-        "work.alreadyWorked": "لقد عملت ، يمكنك العمل مرة أخرى لاحقًا {time}",
-        "work.successfullyWorked": "لقد عملت وكسبت {amount}XC",
-        "work.failed": "باءت بالفشل"
-    }
-}
+  "ar_SY": {
+    "work.selfNoData": "البيانات الخاصة بك ليست جاهزة.",
+    "work.alreadyWorked": "لقد عملت، يمكنك العمل مرة أخرى بعد {time}.",
+    "work.successfullyWorked": "لقد عملت وكسبت {amount} 💵",
+    "work.rareSuccess": "🎉 حظ خارق! لقد وجدت فرصة عمل نادرة وربحت {amount} 💸💸💸",
+    "work.failed": "حدث خطأ ما، حاول مرة أخرى."
+  }
+};
 
 async function onCall({ message, extra, getLang }) {
-    const { Users } = global.controllers;
-    const { min, max, delay } = extra;
-    try {
-        const userData = await Users.getData(message.senderID);
-        if (!userData) return message.reply(getLang("work.selfNoData"));
+  const { Users } = global.controllers;
+  const { min, max, rareMin, rareMax, rareChance, delay } = extra;
+  try {
+    const userData = await Users.getData(message.senderID);
+    if (!userData) return message.reply(getLang("work.selfNoData"));
 
-        if (!userData.hasOwnProperty("work") || typeof userData.work !== 'object') userData.work = { lastWorked: 0, delay: 0 };
-        if (!userData.work.hasOwnProperty("lastWorked")) userData.work.lastWorked = 0;
-        if (!userData.work.hasOwnProperty("delay")) userData.work.delay = 0;
+    if (!userData.work) userData.work = { lastWorked: 0, delay: 0 };
 
-        if (Date.now() - userData.work.lastWorked < userData.work.delay) return message.reply(getLang("work.alreadyWorked", { time: global.msToHMS(userData.work.delay - (Date.now() - userData.work.lastWorked)) }));
+    const timePassed = Date.now() - userData.work.lastWorked;
+    if (timePassed < userData.work.delay)
+      return message.reply(
+        getLang("work.alreadyWorked", {
+          time: global.msToHMS(userData.work.delay - timePassed),
+        })
+      );
 
-        const amount = global.random(min, max);
-        await Users.increaseMoney(message.senderID, amount);
+    let amount, messageKey;
 
-        userData.work.lastWorked = Date.now();
-        userData.work.delay = delay[global.random(0, delay.length - 1)];
-        await Users.updateData(message.senderID, { work: userData.work });
-
-        message.reply(getLang("work.successfullyWorked", { amount: global.addCommas(amount) }));
-    } catch (error) {
-        console.error(error);
-        message.reply(getLang("work.failed"));
+    // فرصة نادرة
+    if (Math.random() * 100 < rareChance) {
+      amount = global.random(rareMin, rareMax);
+      messageKey = "work.rareSuccess";
+    } else {
+      amount = global.random(min, max);
+      messageKey = "work.successfullyWorked";
     }
-}
 
+    await Users.increaseMoney(message.senderID, amount);
+
+    // تحديد تأخير العمل القادم
+    userData.work.lastWorked = Date.now();
+    userData.work.delay = delay[global.random(0, delay.length - 1)];
+    await Users.updateData(message.senderID, { work: userData.work });
+
+    return message.reply(getLang(messageKey, { amount: global.addCommas(amount) }));
+  } catch (err) {
+    console.error(err);
+    return message.reply(getLang("work.failed"));
+  }
+}
 
 export default {
-    config,
-    langData,
-    onCall
-}
+  config,
+  langData,
+  onCall
+};
