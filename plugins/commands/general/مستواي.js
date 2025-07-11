@@ -1,63 +1,34 @@
 const config = {
   name: "مستواي",
-  aliases: ["لفلي", "مستوى", "لفل"],
-  description: "عرض مستواك وعدد تفاعلك واسمك.",
-  usage: "",
-  version: "1.1",
-  cooldown: 3,
-  permissions: [0],
+  version: "1.0",
+  description: "عرض مستواك وعدد نقاطك",
   credits: "XaviaTeam",
+  cooldown: 5,
+  permissions: [0],
   category: "معلومات"
 };
 
-// نفس دالة رفع المستوى الموجودة في الحدث
-function expToLevel(exp) {
-  let level = 0;
-  while (exp >= 5 * level * level + 50 * level + 100) level++;
-  return level;
-}
+function onCall({ message, data }) {
+  const { senderID, threadID } = message;
 
-// كم نقطة يحتاجها للمستوى المطلوب
-function levelToExp(level) {
-  return 5 * level * level + 50 * level + 100;
-}
+  const userData = data.users.get(senderID)?.data || {};
+  const userInfo = data.users.get(senderID)?.info || {};
+  const name = userInfo.name || "المستخدم";
 
-// توليد شريط تقدم جميل
-function generateProgressBar(current, total, length = 20) {
-  const progress = Math.floor((current / total) * length);
-  const bar = "█".repeat(progress) + "░".repeat(length - progress);
-  return bar;
-}
+  const exp = userData.exp || 0;
+  const level = global.expToLevel(exp);
+  const nextLevelExp = global.levelToExp(level + 1);
+  const expNeeded = nextLevelExp - exp;
 
-async function onCall({ message }) {
-  const { senderID } = message;
-  const user = global.data.users.get(senderID);
-  if (!user) return message.reply("❌ لا توجد بيانات لك في النظام بعد. أرسل بعض الرسائل أولاً.");
+  const reply = `
+🌟 | معلومات المستوى لـ ${name}
 
-  const name = user?.info?.name || senderID;
-  const exp = user?.data?.exp || 0;
+📊 نقاطك الحالية: ${exp}
+⬆️ مستواك الحالي: ${level}
+🧱 تحتاج إلى ${expNeeded} نقطة للوصول للمستوى التالي
+  `.trim();
 
-  const currentLevel = expToLevel(exp);
-  const expForCurrent = levelToExp(currentLevel);
-  const expForNext = levelToExp(currentLevel + 1);
-  const expInLevel = exp - expForCurrent;
-  const totalExpThisLevel = expForNext - expForCurrent;
-  const expLeft = expForNext - exp;
-
-  const progressBar = generateProgressBar(expInLevel, totalExpThisLevel);
-
-  const response = `
-🌟 ︙مـعـلـومـات مـسـتـواك
-
-👤︙الاسـم: ${name}
-🎯︙نقـاط التـفـاعـل: ${exp}
-🔢︙مستواك الحالي: ${currentLevel}
-📈︙للوصول للمستوى القادم تحتاج: ${expLeft} نقطة
-
-${progressBar} (${expInLevel}/${totalExpThisLevel})
-`.trim();
-
-  message.reply(response);
+  message.reply(reply);
 }
 
 export default {
