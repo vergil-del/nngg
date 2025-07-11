@@ -10,12 +10,19 @@ const config = {
   category: "معلومات"
 };
 
-// دالة لحساب كم نقطة نحتاجها للوصول لمستوى معين
-function levelToExp(level) {
-  return 5 * (level ** 2) + 50 * level + 100;
+// نفس دالة رفع المستوى الموجودة في الحدث
+function expToLevel(exp) {
+  let level = 0;
+  while (exp >= 5 * level * level + 50 * level + 100) level++;
+  return level;
 }
 
-// توليد شريط التقدم بناءً على النسبة
+// كم نقطة يحتاجها للمستوى المطلوب
+function levelToExp(level) {
+  return 5 * level * level + 50 * level + 100;
+}
+
+// توليد شريط تقدم جميل
 function generateProgressBar(current, total, length = 20) {
   const progress = Math.floor((current / total) * length);
   const bar = "█".repeat(progress) + "░".repeat(length - progress);
@@ -24,13 +31,13 @@ function generateProgressBar(current, total, length = 20) {
 
 async function onCall({ message }) {
   const { senderID } = message;
-
   const user = global.data.users.get(senderID);
-  if (!user) return message.reply("❌ لم يتم العثور على بياناتك بعد، تفاعل قليلاً أولًا!");
+  if (!user) return message.reply("❌ لا توجد بيانات لك في النظام بعد. أرسل بعض الرسائل أولاً.");
 
   const name = user?.info?.name || senderID;
   const exp = user?.data?.exp || 0;
-  const currentLevel = global.expToLevel(exp);
+
+  const currentLevel = expToLevel(exp);
   const expForCurrent = levelToExp(currentLevel);
   const expForNext = levelToExp(currentLevel + 1);
   const expInLevel = exp - expForCurrent;
@@ -40,12 +47,12 @@ async function onCall({ message }) {
   const progressBar = generateProgressBar(expInLevel, totalExpThisLevel);
 
   const response = `
-🌟 | مـعـلـومـات مـسـتـواك
+🌟 ︙مـعـلـومـات مـسـتـواك
 
-👤 الاسم: ${name}
-📊 التفاعل: ${exp} نقطة
-🆙 المستوى: ${currentLevel}
-⬆️ للمستوى القادم: ${expLeft} نقطة
+👤︙الاسـم: ${name}
+🎯︙نقـاط التـفـاعـل: ${exp}
+🔢︙مستواك الحالي: ${currentLevel}
+📈︙للوصول للمستوى القادم تحتاج: ${expLeft} نقطة
 
 ${progressBar} (${expInLevel}/${totalExpThisLevel})
 `.trim();
